@@ -39,3 +39,7 @@
   align-items: center;
   font-size: 60px;
 }
+
+.new-game {
+  display: none;
+}

@@ -18,25 +18,40 @@ const createBoard = (() => {
 
   const getBoard = () => board;
 
-  return { getBoard };
+  const clearBoard = () => {
+    console.log("clear");
+    const squares = document.querySelectorAll(".cell");
+    for (let i = 0; i < squares.length; i++) {
+      squares[i].textContent = "";
+      board[i] = "";
+    }
+    const message = document.querySelector(".message");
+    const newGameBtn = document.querySelector(".new-game");
+    message.textContent = "";
+    newGameBtn.style.display = "none";
+  };
+
+  return { getBoard, clearBoard };
 })();
 
-const Player = (shape) => {
+const Player = (shape, name) => {
   const getShape = () => shape;
-  return { getShape };
+  const getName = () => name;
+  return { getShape, getName };
 };
 
 const gameController = (() => {
-  const player1 = Player("X");
-  const player2 = Player("O");
+  const player1 = Player("X", "Player 1");
+  const player2 = Player("O", "Player 2");
   let player1turn = true;
 
   const gameLogic = () => {
     const cells = document.querySelectorAll(".cell");
+    shape = player1.getShape();
     cells.forEach((cell) =>
       cell.addEventListener("click", () => {
-        // Check if the cell is open
-        if (legalMove(cell.id - 1)) {
+        // Check if the cell is open and don't allow more moves if a winner
+        if (legalMove(cell.id - 1) && !checkWinner(shape)) {
           // Alternate turns
           player1turn = decideTurn(player1turn);
           if (!player1turn) {
@@ -46,8 +61,21 @@ const gameController = (() => {
           }
           // Draw the correct shape on the board
           markBoard(cell, shape, cell.id - 1);
-          // Check to see if there is a winner
-          checkWinner(shape);
+          // Check for a winner
+          if (checkWinner(shape)) {
+            const message = document.querySelector(".message");
+            if (!player1turn) {
+              message.textContent = `${player1.getName()} is the winner`;
+            } else {
+              message.textContent = `${player2.getName()} is the winner`;
+            }
+            const newGameBtn = document.querySelector(".new-game");
+            newGameBtn.style.display = "flex";
+            newGameBtn.addEventListener("click", () => {
+              createBoard.clearBoard();
+              player1turn = true;
+            });
+          }
         }
       })
     );
@@ -80,7 +108,6 @@ const gameController = (() => {
       createBoard.getBoard()[1] == shape &&
       createBoard.getBoard()[2] == shape
     ) {
-      console.log("winner");
       return true;
     }
     // middle row
@@ -89,7 +116,6 @@ const gameController = (() => {
       createBoard.getBoard()[4] == shape &&
       createBoard.getBoard()[5] == shape
     ) {
-      console.log("winner");
       return true;
     }
     // bottom row
@@ -98,7 +124,6 @@ const gameController = (() => {
       createBoard.getBoard()[7] == shape &&
       createBoard.getBoard()[8] == shape
     ) {
-      console.log("winner");
       return true;
     }
 
@@ -108,7 +133,6 @@ const gameController = (() => {
       createBoard.getBoard()[3] == shape &&
       createBoard.getBoard()[6] == shape
     ) {
-      console.log("winner");
       return true;
     }
     // second column
@@ -117,7 +141,6 @@ const gameController = (() => {
       createBoard.getBoard()[4] == shape &&
       createBoard.getBoard()[7] == shape
     ) {
-      console.log("winner");
       return true;
     }
     // third column
@@ -126,7 +149,6 @@ const gameController = (() => {
       createBoard.getBoard()[5] == shape &&
       createBoard.getBoard()[8] == shape
     ) {
-      console.log("winner");
       return true;
     }
 
@@ -136,7 +158,6 @@ const gameController = (() => {
       createBoard.getBoard()[4] == shape &&
       createBoard.getBoard()[8] == shape
     ) {
-      console.log("winner");
       return true;
     }
     // diagonal (top right - bottom left)
@@ -145,9 +166,9 @@ const gameController = (() => {
       createBoard.getBoard()[4] == shape &&
       createBoard.getBoard()[6] == shape
     ) {
-      console.log("winner");
       return true;
     }
+    return false;
   };
 
   return { player1, player2, gameLogic };
