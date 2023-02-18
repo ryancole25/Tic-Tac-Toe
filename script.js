@@ -19,7 +19,6 @@ const createBoard = (() => {
   const getBoard = () => board;
 
   const clearBoard = () => {
-    console.log("clear");
     const squares = document.querySelectorAll(".cell");
     for (let i = 0; i < squares.length; i++) {
       squares[i].textContent = "";
@@ -168,6 +167,23 @@ const gameController = (() => {
     ) {
       return true;
     }
+
+    // Checks for ties
+    for (let i = 0; i < 9; i++) {
+      if (createBoard.getBoard()[i] == "") {
+        return false;
+      }
+    }
+
+    const message = document.querySelector(".message");
+    message.textContent = "It's a tie";
+    const newGameBtn = document.querySelector(".new-game");
+
+    newGameBtn.style.display = "flex";
+    newGameBtn.addEventListener("click", () => {
+      createBoard.clearBoard();
+      player1turn = true;
+    });
     return false;
   };
 
