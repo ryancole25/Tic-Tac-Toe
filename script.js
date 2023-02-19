@@ -1,3 +1,7 @@
+// TODO
+// Have game type determined by the PvP or PvC buttons
+// Create computer logic to play against
+
 const createBoard = (() => {
   let board = [];
   const gameboard = document.querySelector(".gameboard");
@@ -101,6 +105,12 @@ const gameController = (() => {
 
   // Checks whose turn it is
   const decideTurn = (player1turn) => {
+    const displayTurn = document.querySelector(".turn");
+    if (player1turn) {
+      displayTurn.textContent = "Player 2's turn";
+    } else {
+      displayTurn.textContent = "Player 1's turn";
+    }
     return !player1turn;
   };
 
@@ -194,4 +204,22 @@ const gameController = (() => {
   return { player1, player2, gameLogic };
 })();
 
+const displayController = (() => {
+  // Sets the game as either player vs player (pvp) or player vs computer (pvc)
+  const toggleGameType = () => {
+    const pvpBtn = document.querySelector("#pvp");
+    const pvcBtn = document.querySelector("#pvc");
+    pvpBtn.addEventListener("click", () => {
+      pvpBtn.classList = "active";
+      pvcBtn.classList = "";
+    });
+    pvcBtn.addEventListener("click", () => {
+      pvcBtn.classList = "active";
+      pvpBtn.classList = "";
+    });
+  };
+  return { toggleGameType };
+})();
+
 gameController.gameLogic();
+displayController.toggleGameType();

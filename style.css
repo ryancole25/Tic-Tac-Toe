@@ -1,3 +1,10 @@
+:root {
+  --bluish-background: #c5cbe3;
+}
+
+body {
+  background-color: var(--bluish-background);
+}
 .mastercontainer {
   display: flex;
   flex-direction: column;
@@ -55,15 +62,20 @@ h3 {
   justify-content: center;
   align-items: center;
   font-size: 60px;
-  background-color: white;
+  background-color: var(--bluish-background);
 }
 
+.turn {
+  font-size: 34px;
+  margin-top: 30px;
+  margin-bottom: 0px;
+}
 .new-game {
   display: none;
 }
 
 .cell:hover {
-  background-color: lightgray;
+  background-color: #7186ca;
 }
 
 .cell img {
@@ -79,4 +91,21 @@ button {
   font-weight: 600;
   margin: 0;
   padding: 13px 23px;
+  box-sizing: border-box;
+}
+
+button.active {
+  /* border: none; */
+  outline: 2px solid blue;
+}
+
+button:hover {
+  background-color: lightgray;
+}
+
+.message {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin-bottom: 10px;
+  font-size: 24px;
+  font-weight: bold;
 }
