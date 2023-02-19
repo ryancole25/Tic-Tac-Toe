@@ -3,14 +3,14 @@ const createBoard = (() => {
   const gameboard = document.querySelector(".gameboard");
   for (let i = 0; i < 3; i++) {
     let row = document.createElement("div");
-    row.classList = "row";
+    row.classList = `row row${i + 1}`;
     row.id = i + 1;
     gameboard.appendChild(row);
 
     for (let j = 0; j < 3; j++) {
       board.push("");
       let cell = document.createElement("div");
-      cell.classList = "cell";
+      cell.classList = `cell col${j + 1}`;
       cell.id = 3 * i + (j + 1);
       row.appendChild(cell);
     }
@@ -90,7 +90,11 @@ const gameController = (() => {
   };
 
   const markBoard = (cell, shape, index) => {
-    cell.textContent = shape;
+    if (shape == "X") {
+      cell.innerHTML = "<img src='barbell_x.png'>";
+    } else {
+      cell.innerHTML = "<img src='barbell-standard copy.png'>";
+    }
     createBoard.getBoard()[index] = shape;
     console.log(createBoard.getBoard());
   };
