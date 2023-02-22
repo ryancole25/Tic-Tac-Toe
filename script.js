@@ -14,7 +14,7 @@ const createBoard = (() => {
     for (let j = 0; j < 3; j++) {
       board.push("");
       let cell = document.createElement("div");
-      cell.classList = `cell col${j + 1}`;
+      cell.classList = `cell col${j + 1} cell${j + 1 + i * 3}`;
       cell.id = 3 * i + (j + 1);
       row.appendChild(cell);
     }
@@ -45,10 +45,16 @@ const Player = (shape, name) => {
 
 const gameController = (() => {
   const player1 = Player("X", "Player 1");
-  const player2 = Player("O", "Player 2");
   let player1turn = true;
+  let player2 = Player("O", "Player 2");
 
-  const gameLogic = () => {
+  const gameLogic = (computer) => {
+    if (computer) {
+      player2 = Player("L", "Computer");
+    } else {
+      player2 = Player("O", "Player2");
+    }
+
     const cells = document.querySelectorAll(".cell");
     shape = player1.getShape();
     cells.forEach((cell) =>
@@ -59,11 +65,20 @@ const gameController = (() => {
           player1turn = decideTurn(player1turn);
           if (!player1turn) {
             shape = player1.getShape();
+            // Draw the correct shape on the board
+            markBoard(cell, shape, cell.id - 1);
+            if (computer) {
+              // TODO put computer logic here
+              shape = player2.getShape();
+              let comp_cell = document.querySelector(".cell2");
+              markBoard(comp_cell, shape, cell.id - 1);
+              player1turn = decideTurn(player1turn);
+            }
           } else {
             shape = player2.getShape();
+            // Draw the correct shape on the board
+            markBoard(cell, shape, cell.id - 1);
           }
-          // Draw the correct shape on the board
-          markBoard(cell, shape, cell.id - 1);
           // Check for a winner
           if (checkWinner(shape)) {
             const message = document.querySelector(".message");
@@ -201,7 +216,7 @@ const gameController = (() => {
     return false;
   };
 
-  return { player1, player2, gameLogic };
+  return { player1, gameLogic };
 })();
 
 const displayController = (() => {
@@ -210,10 +225,22 @@ const displayController = (() => {
     const pvpBtn = document.querySelector("#pvp");
     const pvcBtn = document.querySelector("#pvc");
     pvpBtn.addEventListener("click", () => {
+      // Clear the board if the game type changes
+      if (pvpBtn.classList != "active") {
+        createBoard.clearBoard();
+      }
       pvpBtn.classList = "active";
       pvcBtn.classList = "";
+      gameController.gameLogic(false);
+      const displayTurn = document.querySelector(".turn");
+      displayTurn.textContent = "Player 1's turn";
     });
     pvcBtn.addEventListener("click", () => {
+      // Clear the board if the game type changes
+      if (pvcBtn.classList != "active") {
+        createBoard.clearBoard();
+      }
+      gameController.gameLogic(true);
       pvcBtn.classList = "active";
       pvpBtn.classList = "";
     });
@@ -221,5 +248,4 @@ const displayController = (() => {
   return { toggleGameType };
 })();
 
-gameController.gameLogic();
 displayController.toggleGameType();
