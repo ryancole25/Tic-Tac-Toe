@@ -26,7 +26,7 @@ const createBoard = (() => {
     const squares = document.querySelectorAll(".cell");
     for (let i = 0; i < squares.length; i++) {
       squares[i].textContent = "";
-      board[i] = "";
+      board[i] = i;
     }
     const message = document.querySelector(".message");
     const newGameBtn = document.querySelector(".new-game");
@@ -52,7 +52,7 @@ const gameController = (() => {
     if (computer) {
       player2 = Player("L", "Computer");
     } else {
-      player2 = Player("O", "Player2");
+      player2 = Player("O", "Player 2");
     }
 
     const cells = document.querySelectorAll(".cell");
@@ -60,18 +60,23 @@ const gameController = (() => {
     cells.forEach((cell) =>
       cell.addEventListener("click", () => {
         // Check if the cell is open and don't allow more moves if a winner
-        if (legalMove(cell.id - 1) && !checkWinner(shape)) {
+        if (
+          legalMove(cell.id - 1) &&
+          !checkWinner(createBoard.getBoard(), shape)
+        ) {
           // Alternate turns
           player1turn = decideTurn(player1turn);
           if (!player1turn) {
             shape = player1.getShape();
             // Draw the correct shape on the board
             markBoard(cell, shape, cell.id - 1);
+            // Only player1 picks if playing against a computer
             if (computer) {
               // TODO put computer logic here
               shape = player2.getShape();
-              let comp_cell = document.querySelector(".cell2");
-              markBoard(comp_cell, shape, cell.id - 1);
+              // let comp_cell = document.querySelector(".cell2");
+              computerLogic(createBoard.getBoard());
+              // markBoard(comp_cell, shape, cell.id - 1);
               player1turn = decideTurn(player1turn);
             }
           } else {
@@ -80,7 +85,7 @@ const gameController = (() => {
             markBoard(cell, shape, cell.id - 1);
           }
           // Check for a winner
-          if (checkWinner(shape)) {
+          if (checkWinner(createBoard.getBoard(), shape)) {
             const message = document.querySelector(".message");
             if (!player1turn) {
               message.textContent = `${player1.getName()} is the winner`;
@@ -99,8 +104,82 @@ const gameController = (() => {
     );
   };
 
+  const computerLogic = (originalBoard) => {
+    let bestSpot = minimax(originalBoard, player2.getShape());
+    console.log("index: " + bestSpot.index);
+  };
+
+  const minimax = (newBoard, player) => {
+    // console.log("newBoard");
+    // console.log(newBoard);
+    let availableSpots = emptyIndexes(newBoard);
+    console.log("available Spots");
+    console.log(availableSpots);
+
+    console.log("here");
+    if (checkWinner(newBoard, player1.getShape())) {
+      console.log("-10");
+      return { score: -10 };
+    } else if (checkWinner(newBoard, player2.getShape())) {
+      console.log("10");
+      return { score: 10 };
+    } else if (availableSpots.length === 0) {
+      return { score: 0 };
+    }
+
+    let moves = [];
+
+    for (let i = 0; i < availableSpots.length; i++) {
+      let move = {};
+      move.index = newBoard[availableSpots[i]];
+
+      newBoard[availableSpots[i]] = player;
+
+      if (player == player2.getShape()) {
+        let result = minimax(newBoard, player1.getShape());
+        console.log(`Result 1 ${result.score}`);
+        move.score = result.score;
+      } else {
+        let result = minimax(newBoard, player2.getShape());
+        console.log(`Result 2 ${result.score}`);
+        move.score = result.score;
+      }
+
+      newBoard[availableSpots[i]] = move.index;
+
+      moves.push(move);
+    }
+
+    let bestMove;
+    if (player == player2.getShape()) {
+      let bestScore = -10000;
+      for (let i = 0; i < moves.lenth; i++) {
+        if (moves[i].score > bestScore) {
+          bestScore = moves[i].score;
+          bestMove = i;
+        }
+      }
+    } else {
+      let bestScore = 10000;
+      for (let i = 0; i < moves.length; i++) {
+        if (moves[i].score < bestScore) {
+          bestScore = moves[i].score;
+          bestMove = i;
+        }
+      }
+    }
+
+    return moves[bestMove];
+  };
+
+  const emptyIndexes = (board) => {
+    return board.filter(
+      (s) => s != player1.getShape() && s != player2.getShape()
+    );
+  };
+
   const legalMove = (index) => {
-    if (createBoard.getBoard()[index] == "") {
+    if (createBoard.getBoard()[index] == index) {
       return true;
     } else {
       console.log("Not a legal move");
@@ -129,77 +208,62 @@ const gameController = (() => {
     return !player1turn;
   };
 
-  const checkWinner = (shape) => {
-    // top row
+  function winning(board, player) {
     if (
-      createBoard.getBoard()[0] == shape &&
-      createBoard.getBoard()[1] == shape &&
-      createBoard.getBoard()[2] == shape
+      (board[0] == player && board[1] == player && board[2] == player) ||
+      (board[3] == player && board[4] == player && board[5] == player) ||
+      (board[6] == player && board[7] == player && board[8] == player) ||
+      (board[0] == player && board[3] == player && board[6] == player) ||
+      (board[1] == player && board[4] == player && board[7] == player) ||
+      (board[2] == player && board[5] == player && board[8] == player) ||
+      (board[0] == player && board[4] == player && board[8] == player) ||
+      (board[2] == player && board[4] == player && board[6] == player)
     ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  const checkWinner = (board, shape) => {
+    // top row
+    if (board[0] == shape && board[1] == shape && board[2] == shape) {
       return true;
     }
     // middle row
-    else if (
-      createBoard.getBoard()[3] == shape &&
-      createBoard.getBoard()[4] == shape &&
-      createBoard.getBoard()[5] == shape
-    ) {
+    else if (board[3] == shape && board[4] == shape && board[5] == shape) {
       return true;
     }
     // bottom row
-    else if (
-      createBoard.getBoard()[6] == shape &&
-      createBoard.getBoard()[7] == shape &&
-      createBoard.getBoard()[8] == shape
-    ) {
+    else if (board[6] == shape && board[7] == shape && board[8] == shape) {
       return true;
     }
 
     // first column
-    else if (
-      createBoard.getBoard()[0] == shape &&
-      createBoard.getBoard()[3] == shape &&
-      createBoard.getBoard()[6] == shape
-    ) {
+    else if (board[0] == shape && board[3] == shape && board[6] == shape) {
       return true;
     }
     // second column
-    else if (
-      createBoard.getBoard()[1] == shape &&
-      createBoard.getBoard()[4] == shape &&
-      createBoard.getBoard()[7] == shape
-    ) {
+    else if (board[1] == shape && board[4] == shape && board[7] == shape) {
       return true;
     }
     // third column
-    else if (
-      createBoard.getBoard()[2] == shape &&
-      createBoard.getBoard()[5] == shape &&
-      createBoard.getBoard()[8] == shape
-    ) {
+    else if (board[2] == shape && board[5] == shape && board[8] == shape) {
       return true;
     }
 
     // diagonal (top left - bottom right)
-    else if (
-      createBoard.getBoard()[0] == shape &&
-      createBoard.getBoard()[4] == shape &&
-      createBoard.getBoard()[8] == shape
-    ) {
+    else if (board[0] == shape && board[4] == shape && board[8] == shape) {
       return true;
     }
     // diagonal (top right - bottom left)
-    else if (
-      createBoard.getBoard()[2] == shape &&
-      createBoard.getBoard()[4] == shape &&
-      createBoard.getBoard()[6] == shape
-    ) {
+    else if (board[2] == shape && board[4] == shape && board[6] == shape) {
       return true;
     }
 
     // Checks for ties
     for (let i = 0; i < 9; i++) {
-      if (createBoard.getBoard()[i] == "") {
+      if (board[i] == i) {
         return false;
       }
     }
@@ -243,6 +307,8 @@ const displayController = (() => {
       gameController.gameLogic(true);
       pvcBtn.classList = "active";
       pvpBtn.classList = "";
+      const displayTurn = document.querySelector(".turn");
+      displayTurn.textContent = "Player 1's turn";
     });
   };
   return { toggleGameType };
