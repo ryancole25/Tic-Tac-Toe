@@ -50,7 +50,7 @@ const gameController = (() => {
 
   const gameLogic = (computer) => {
     if (computer) {
-      player2 = Player("L", "Computer");
+      player2 = Player("O", "Computer");
     } else {
       player2 = Player("O", "Player 2");
     }
@@ -71,12 +71,14 @@ const gameController = (() => {
             // Draw the correct shape on the board
             markBoard(cell, shape, cell.id - 1);
             // Only player1 picks if playing against a computer
-            if (computer) {
-              // TODO put computer logic here
+            if (computer && !checkWinner(createBoard.getBoard(), shape)) {
               shape = player2.getShape();
-              // let comp_cell = document.querySelector(".cell2");
-              computerLogic(createBoard.getBoard());
-              // markBoard(comp_cell, shape, cell.id - 1);
+              let bestSpot = minimax(createBoard.getBoard(), shape);
+              let computerCell = document.querySelector(
+                `.cell${bestSpot.index + 1}`
+              );
+              console.log(shape);
+              markBoard(computerCell, shape, bestSpot.index);
               player1turn = decideTurn(player1turn);
             }
           } else {
@@ -104,62 +106,58 @@ const gameController = (() => {
     );
   };
 
-  const computerLogic = (originalBoard) => {
-    let bestSpot = minimax(originalBoard, player2.getShape());
-    console.log("index: " + bestSpot.index);
-  };
+  function minimax(newBoard, player) {
+    //available spots
+    let availSpots = emptyIndexies(newBoard);
 
-  const minimax = (newBoard, player) => {
-    // console.log("newBoard");
-    // console.log(newBoard);
-    let availableSpots = emptyIndexes(newBoard);
-    console.log("available Spots");
-    console.log(availableSpots);
-
-    console.log("here");
-    if (checkWinner(newBoard, player1.getShape())) {
-      console.log("-10");
+    // checks for the terminal states such as win, lose, and tie and returning a value accordingly
+    if (winning(newBoard, player1.getShape())) {
       return { score: -10 };
-    } else if (checkWinner(newBoard, player2.getShape())) {
-      console.log("10");
+    } else if (winning(newBoard, player2.getShape())) {
       return { score: 10 };
-    } else if (availableSpots.length === 0) {
+    } else if (availSpots.length === 0) {
       return { score: 0 };
     }
 
+    // an array to collect all the objects
     let moves = [];
 
-    for (let i = 0; i < availableSpots.length; i++) {
+    // loop through available spots
+    for (let i = 0; i < availSpots.length; i++) {
+      //create an object for each and store the index of that spot that was stored as a number in the object's index key
       let move = {};
-      move.index = newBoard[availableSpots[i]];
+      move.index = newBoard[availSpots[i]];
 
-      newBoard[availableSpots[i]] = player;
+      // set the empty spot to the current player
+      newBoard[availSpots[i]] = player;
 
+      //if collect the score resulted from calling minimax on the opponent of the current player
       if (player == player2.getShape()) {
-        let result = minimax(newBoard, player1.getShape());
-        console.log(`Result 1 ${result.score}`);
+        var result = minimax(newBoard, player1.getShape());
         move.score = result.score;
       } else {
-        let result = minimax(newBoard, player2.getShape());
-        console.log(`Result 2 ${result.score}`);
+        var result = minimax(newBoard, player2.getShape());
         move.score = result.score;
       }
 
-      newBoard[availableSpots[i]] = move.index;
+      //reset the spot to empty
+      newBoard[availSpots[i]] = move.index;
 
       moves.push(move);
     }
 
+    // if it is the computer's turn loop over the moves and choose the move with the highest score
     let bestMove;
-    if (player == player2.getShape()) {
+    if (player === player2.getShape()) {
       let bestScore = -10000;
-      for (let i = 0; i < moves.lenth; i++) {
+      for (let i = 0; i < moves.length; i++) {
         if (moves[i].score > bestScore) {
           bestScore = moves[i].score;
           bestMove = i;
         }
       }
     } else {
+      // else loop over the moves and choose the move with the lowest score
       let bestScore = 10000;
       for (let i = 0; i < moves.length; i++) {
         if (moves[i].score < bestScore) {
@@ -170,13 +168,30 @@ const gameController = (() => {
     }
 
     return moves[bestMove];
-  };
+  }
 
-  const emptyIndexes = (board) => {
-    return board.filter(
-      (s) => s != player1.getShape() && s != player2.getShape()
-    );
-  };
+  // returns the available spots on the board
+  function emptyIndexies(board) {
+    return board.filter((s) => s != "O" && s != "X");
+  }
+
+  // winning combinations using the board indexies for instace the first win could be 3 xes in a row
+  function winning(board, player) {
+    if (
+      (board[0] == player && board[1] == player && board[2] == player) ||
+      (board[3] == player && board[4] == player && board[5] == player) ||
+      (board[6] == player && board[7] == player && board[8] == player) ||
+      (board[0] == player && board[3] == player && board[6] == player) ||
+      (board[1] == player && board[4] == player && board[7] == player) ||
+      (board[2] == player && board[5] == player && board[8] == player) ||
+      (board[0] == player && board[4] == player && board[8] == player) ||
+      (board[2] == player && board[4] == player && board[6] == player)
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
   const legalMove = (index) => {
     if (createBoard.getBoard()[index] == index) {
@@ -207,23 +222,6 @@ const gameController = (() => {
     }
     return !player1turn;
   };
-
-  function winning(board, player) {
-    if (
-      (board[0] == player && board[1] == player && board[2] == player) ||
-      (board[3] == player && board[4] == player && board[5] == player) ||
-      (board[6] == player && board[7] == player && board[8] == player) ||
-      (board[0] == player && board[3] == player && board[6] == player) ||
-      (board[1] == player && board[4] == player && board[7] == player) ||
-      (board[2] == player && board[5] == player && board[8] == player) ||
-      (board[0] == player && board[4] == player && board[8] == player) ||
-      (board[2] == player && board[4] == player && board[6] == player)
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-  }
 
   const checkWinner = (board, shape) => {
     // top row
