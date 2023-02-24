@@ -1,7 +1,3 @@
-// TODO
-// Have game type determined by the PvP or PvC buttons
-// Create computer logic to play against
-
 const createBoard = (() => {
   let board = [];
   const gameboard = document.querySelector(".gameboard");
@@ -48,6 +44,7 @@ const gameController = (() => {
   let player1turn = true;
   let player2 = Player("O", "Player 2");
 
+  // Sets the player 2 name as a computer if you choose to play against one
   const gameLogic = (computer) => {
     if (computer) {
       player2 = Player("O", "Computer");
@@ -73,6 +70,7 @@ const gameController = (() => {
             // Only player1 picks if playing against a computer
             if (computer && !checkWinner(createBoard.getBoard(), shape)) {
               shape = player2.getShape();
+              // Choose the computer spot using minimax algorithm
               let bestSpot = minimax(createBoard.getBoard(), shape);
               let computerCell = document.querySelector(
                 `.cell${bestSpot.index + 1}`
@@ -106,7 +104,7 @@ const gameController = (() => {
     );
   };
 
-  function minimax(newBoard, player) {
+  const minimax = (newBoard, player) => {
     //available spots
     let availSpots = emptyIndexies(newBoard);
 
@@ -168,14 +166,14 @@ const gameController = (() => {
     }
 
     return moves[bestMove];
-  }
+  };
 
   // returns the available spots on the board
-  function emptyIndexies(board) {
+  const emptyIndexies = (board) => {
     return board.filter((s) => s != "O" && s != "X");
-  }
+  };
 
-  // winning combinations using the board indexies for instace the first win could be 3 xes in a row
+  // winning check for the computer simulations (doesn't check ties here)
   function winning(board, player) {
     if (
       (board[0] == player && board[1] == player && board[2] == player) ||
@@ -193,15 +191,16 @@ const gameController = (() => {
     }
   }
 
+  // Checks if there is a shape in that square
   const legalMove = (index) => {
     if (createBoard.getBoard()[index] == index) {
       return true;
     } else {
-      console.log("Not a legal move");
       return false;
     }
   };
 
+  // Marks the board with an image at the specified location
   const markBoard = (cell, shape, index) => {
     if (shape == "X") {
       cell.innerHTML = "<img src='barbell_x.png'>";
@@ -209,7 +208,6 @@ const gameController = (() => {
       cell.innerHTML = "<img src='barbell-standard copy.png'>";
     }
     createBoard.getBoard()[index] = shape;
-    console.log(createBoard.getBoard());
   };
 
   // Checks whose turn it is
@@ -223,6 +221,7 @@ const gameController = (() => {
     return !player1turn;
   };
 
+  // Checks winners and puts up a new game button if there is a tie
   const checkWinner = (board, shape) => {
     // top row
     if (board[0] == shape && board[1] == shape && board[2] == shape) {
@@ -293,6 +292,12 @@ const displayController = (() => {
       }
       pvpBtn.classList = "active";
       pvcBtn.classList = "";
+      const allCells = document.querySelectorAll(".cell");
+      // Remove the event listeners so toggling the game won't interfere
+      for (let i = 0; i < allCells.length; i++) {
+        let newElement = allCells[i].cloneNode(true);
+        allCells[i].parentNode.replaceChild(newElement, allCells[i]);
+      }
       gameController.gameLogic(false);
       const displayTurn = document.querySelector(".turn");
       displayTurn.textContent = "Player 1's turn";
@@ -302,9 +307,15 @@ const displayController = (() => {
       if (pvcBtn.classList != "active") {
         createBoard.clearBoard();
       }
-      gameController.gameLogic(true);
       pvcBtn.classList = "active";
       pvpBtn.classList = "";
+      // Remove the event listeners so toggling the game won't interfere
+      const allCells = document.querySelectorAll(".cell");
+      for (let i = 0; i < allCells.length; i++) {
+        let newElement = allCells[i].cloneNode(true);
+        allCells[i].parentNode.replaceChild(newElement, allCells[i]);
+      }
+      gameController.gameLogic(true);
       const displayTurn = document.querySelector(".turn");
       displayTurn.textContent = "Player 1's turn";
     });
