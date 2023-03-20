@@ -75,7 +75,6 @@ const gameController = (() => {
               let computerCell = document.querySelector(
                 `.cell${bestSpot.index + 1}`
               );
-              console.log(shape);
               markBoard(computerCell, shape, bestSpot.index);
               player1turn = decideTurn(player1turn);
             }
@@ -205,7 +204,7 @@ const gameController = (() => {
     if (shape == "X") {
       cell.innerHTML = "<img src='barbell_x.png'>";
     } else {
-      cell.innerHTML = "<img src='barbell-standard copy.png'>";
+      cell.innerHTML = "<img src='Barbell-standard copy.png'>";
     }
     createBoard.getBoard()[index] = shape;
   };
